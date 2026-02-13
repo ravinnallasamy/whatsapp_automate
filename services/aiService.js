@@ -102,7 +102,8 @@ async function processUserMessage(phoneNumber, messageText) {
         // New User
         console.log(`New user: ${phoneNumber}`);
         accessToken = await getAccessToken(phoneNumber);
-        conversationId = await createConversationId(accessToken);
+        accessToken = await getAccessToken(phoneNumber);
+        conversationId = null; // Let AI API generate it
 
         user = new User({
             phoneNumber,
@@ -139,6 +140,12 @@ async function processUserMessage(phoneNumber, messageText) {
     // 2. AI Interaction with Retry Logic
     try {
         const aiResponse = await callAIChat(accessToken, conversationId, messageText);
+
+        // Capture Conversation ID from AI Response
+        if (aiResponse.conversation_id && aiResponse.conversation_id !== user.conversationId) {
+            user.conversationId = aiResponse.conversation_id;
+            await user.save();
+        }
         return aiResponse;
     } catch (error) {
         if (error.message === 'AUTH_FAILURE') {
@@ -155,6 +162,12 @@ async function processUserMessage(phoneNumber, messageText) {
                 // Retry ONCE
                 console.log('Retrying AI call with new token...');
                 const retryResponse = await callAIChat(newAccessToken, conversationId, messageText);
+
+                // Capture Conversation ID from Retry Response
+                if (retryResponse.conversation_id && retryResponse.conversation_id !== user.conversationId) {
+                    user.conversationId = retryResponse.conversation_id;
+                    await user.save();
+                }
                 return retryResponse;
             } catch (retryError) {
                 console.error('Retry failed:', retryError.message);
@@ -163,10 +176,15 @@ async function processUserMessage(phoneNumber, messageText) {
         } else if (error.message === 'INVALID_CONVERSATION_ID') {
             // Regenerate Conversation ID Logic
             console.log('Conversation ID rejected. Regenerating...');
-            const newConvId = await createConversationId(accessToken);
-            user.conversationId = newConvId;
-            await user.save();
-            const retryResponse = await callAIChat(accessToken, newConvId, messageText);
+            console.log('Conversation ID rejected. Requesting new one from API...');
+
+            // Reset to null and request new
+            const retryResponse = await callAIChat(accessToken, null, messageText);
+
+            if (retryResponse.conversation_id) {
+                user.conversationId = retryResponse.conversation_id;
+                await user.save();
+            }
             return retryResponse;
         }
 
