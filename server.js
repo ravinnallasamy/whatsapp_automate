@@ -14,7 +14,10 @@ app.use(bodyParser.json());
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Connected to MongoDB Atlas'))
-    .catch(err => console.error('MongoDB connection error:', err));
+    .catch(err => {
+        console.error('❌ MongoDB Connection Error:', err);
+        console.error('💡 HINT: If on Render, ensure you have whitelisted 0.0.0.0/0 (Anywhere) in MongoDB Atlas Network Access.');
+    });
 
 // Routes
 // Verification Endpoint (Optional for manual testing or Facebook verification)
