@@ -5,10 +5,19 @@ const reportGenerator = require('../services/reportGenerator');
 const fs = require('fs');
 const path = require('path');
 
+const mongoose = require('mongoose');
+
 // Initialize Twilio Client
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 exports.handleIncomingMessage = async (req, res) => {
+    // Step 5: Add a guard in webhook (safety)
+    // 0: disconnected, 1: connected, 2: connecting, 3: disconnecting
+    if (mongoose.connection.readyState !== 1) {
+        console.error("❌ Webhook rejected: Database not connected.");
+        return res.status(503).send('Service Unavailable: Database not connected');
+    }
+
     // 1. Respond to Twilio immediately
     res.status(200).send('<Response></Response>');
 

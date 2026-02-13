@@ -11,14 +11,6 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded({ extended: false })); // Twilio sends form-urlencoded data
 app.use(bodyParser.json());
 
-// Database Connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB Atlas'))
-    .catch(err => {
-        console.error('❌ MongoDB Connection Error:', err);
-        console.error('💡 HINT: If on Render, ensure you have whitelisted 0.0.0.0/0 (Anywhere) in MongoDB Atlas Network Access.');
-    });
-
 // Routes
 // Verification Endpoint (Optional for manual testing or Facebook verification)
 app.get('/', (req, res) => {
@@ -55,7 +47,27 @@ setInterval(() => {
 // Twilio Webhook Endpoint
 app.post('/whatsapp', whatsappController.handleIncomingMessage);
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// --- Database Connection & Server Startup ---
+// Step 3: Disable Mongoose buffering
+mongoose.set('bufferCommands', false);
+
+console.log("⏳ Initializing Database Connection...");
+
+// Step 1: Connect MongoDB ONCE
+mongoose.connect(process.env.MONGODB_URI, {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+})
+    .then(() => {
+        console.log('✅ Connected to MongoDB Atlas');
+
+        // Step 2: Start server ONLY after DB is connected
+        app.listen(PORT, () => {
+            console.log(`🚀 Server running on port ${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error('❌ MongoDB Startup Connection Error:', err);
+        console.error('💡 HINT: Check IP Whitelist in Atlas/Network Access.');
+        process.exit(1); // Exit process if DB fails
+    });
