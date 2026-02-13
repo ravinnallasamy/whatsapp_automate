@@ -10,7 +10,7 @@ const AI_CHAT_API_URL = process.env.AI_CHAT_API_URL;
  */
 async function getAccessToken(phoneNumber) {
     try {
-        const response = await axios.post(ACCESS_TOKEN_API_URL, { phoneNumber });
+        const response = await axios.post(ACCESS_TOKEN_API_URL, { mobile_number: phoneNumber });
         // Assuming response.data.access_token exists
         if (!response.data || !response.data.access_token) {
             throw new Error('Invalid response from Access Token API');
