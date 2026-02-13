@@ -1,0 +1,10 @@
+node_modules
+.env
+public/reports
+test-whatsapp-ui.js
+test-db.js
+debug-dns.js
+.git
+.gitignore
+.dockerignore
+Dockerfile
