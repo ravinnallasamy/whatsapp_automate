@@ -1,0 +1,30 @@
+﻿----- 1. INSPECTING DATA -----
+Table found with 6 columns.
+----- 2. GENERATING MEDIA (Puppeteer) -----
+Generated Format: PDF
+Γ£à File saved to: public/reports/test_output.pdf
+
+----- 3. SIMULATED WHATSAPP RESPONSE -----
+--- MESSAGE 1 (Media Attachment) ---
+[Attachment Path: public/reports/test_output.pdf]
+*≡ƒôè Key Metrics:*
+*Total Net Revenue:* 22975.96 Lacs
+*Average Monthly Net Revenue:* 4595.19 Lacs
+*Highest Monthly Net Revenue:* 6100.96 Lacs (Dec 2025)
+*Lowest Monthly Net Revenue:* 1396.42 Lacs (Feb 2026)
+
+ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+
+*≡ƒô¥ Overview:*
+Hello User 3210, here's the revenue and sales trends for the past 5 months, from October 2025 to February 2026.
+
+The table contains 6 columns, which is not readable as an image on WhatsApp.
+≡ƒôä Download the full table as a PDF below.
+
+--- MESSAGE 2 (Suggestions) ---
+*≡ƒÆí Suggested Questions:*
+_Reply with key words or number:_
+
+*1.* Show net revenue by region for these months?
+*2.* Compare sales trends with the previous year?
+*3.* Analyze return revenue details?
