@@ -57,6 +57,7 @@ console.log("⏳ Initializing Database Connection...");
 mongoose.connect(process.env.MONGODB_URI, {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
+    family: 4 // Force IPv4 to prevent IPv6 connectivity issues
 })
     .then(() => {
         console.log('✅ Connected to MongoDB Atlas');
