@@ -69,17 +69,47 @@ exports.handleIncomingMessage = async (req, res) => {
                     mediaUrl: [mediaUrl]
                 });
 
-                // Send Message 2: Suggestions (Separate for better UX)
+                // Send Message 2: Suggestions (Interactive Buttons via Content Template)
                 if (formattedData.suggestions && formattedData.suggestions.length > 0) {
-                    const suggestionsText = formattedData.suggestions
-                        .map((s, i) => `*${i + 1}.* ${s}`)
-                        .join('\n');
+                    if (process.env.TWILIO_CONTENT_SID) {
+                        try {
+                            const variables = {
+                                "1": "Explore more:", // Optional header or context for buttons
+                                "2": formattedData.suggestions[0] || "Menu",
+                                "3": formattedData.suggestions[1] || "Global Trends",
+                                "4": formattedData.suggestions[2] || "Help"
+                            };
 
-                    await client.messages.create({
-                        from: req.body.To,
-                        to: From,
-                        body: `*💡 Suggested Questions:*\n_Reply with key words or number:_\n\n${suggestionsText}`
-                    });
+                            await client.messages.create({
+                                from: req.body.To,
+                                to: From,
+                                contentSid: process.env.TWILIO_CONTENT_SID,
+                                contentVariables: JSON.stringify(variables)
+                            });
+                        } catch (templateError) {
+                            console.error("Twilio Template Error, falling back to text:", templateError);
+                            // Fallback to text if template fails
+                            const suggestionsText = formattedData.suggestions
+                                .map((s, i) => `*${i + 1}.* ${s}`)
+                                .join('\n');
+                            await client.messages.create({
+                                from: req.body.To,
+                                to: From,
+                                body: `*💡 Suggested Questions:*\n_Reply with key words or number:_\n\n${suggestionsText}`
+                            });
+                        }
+                    } else {
+                        // Standard Text Fallback
+                        const suggestionsText = formattedData.suggestions
+                            .map((s, i) => `*${i + 1}.* ${s}`)
+                            .join('\n');
+
+                        await client.messages.create({
+                            from: req.body.To,
+                            to: From,
+                            body: `*💡 Suggested Questions:*\n_Reply with key words or number:_\n\n${suggestionsText}`
+                        });
+                    }
                 }
 
                 return; // Done
@@ -94,19 +124,43 @@ exports.handleIncomingMessage = async (req, res) => {
         const formattedData = formatter.formatResponse(aiData);
         let messageBody = formattedData.body;
 
-        // Append Suggestions
         if (formattedData.suggestions && formattedData.suggestions.length > 0) {
-            const suggestionsText = formattedData.suggestions
-                .map((s, i) => `*${i + 1}.* ${s}`)
-                .join('\n');
-            messageBody += `\n\n────────────────\n\n*💡 Suggested Questions:*\n_Reply with key words or number:_\n\n${suggestionsText}`;
-        }
+            if (process.env.TWILIO_CONTENT_SID) {
+                // Use Template for Body + Buttons
+                const variables = {
+                    "1": messageBody,
+                    "2": formattedData.suggestions[0] || "Menu",
+                    "3": formattedData.suggestions[1] || "Global Trends",
+                    "4": formattedData.suggestions[2] || "Help"
+                };
 
-        await client.messages.create({
-            from: req.body.To,
-            to: From,
-            body: messageBody
-        });
+                await client.messages.create({
+                    from: req.body.To,
+                    to: From,
+                    contentSid: process.env.TWILIO_CONTENT_SID,
+                    contentVariables: JSON.stringify(variables)
+                });
+            } else {
+                // Fallback: Append Suggestions
+                const suggestionsText = formattedData.suggestions
+                    .map((s, i) => `*${i + 1}.* ${s}`)
+                    .join('\n');
+                messageBody += `\n\n────────────────\n\n*💡 Suggested Questions:*\n_Reply with key words or number:_\n\n${suggestionsText}`;
+
+                await client.messages.create({
+                    from: req.body.To,
+                    to: From,
+                    body: messageBody
+                });
+            }
+        } else {
+            // No suggestions, just body
+            await client.messages.create({
+                from: req.body.To,
+                to: From,
+                body: messageBody
+            });
+        }
 
     } catch (error) {
         console.error('Error in processing flow:', error);
